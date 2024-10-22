@@ -1,0 +1,18 @@
+##Given a dataframe with columns :category, subcategory and value Create a pivot table where each category becomes a column, and the value column sums up the value for each category
+
+from pyspark.sql.functions import sum
+
+# Create the table with the columns
+data = [('A','x',10),
+        ('A','y',20),
+        ('B','x',30),
+        ('B','z',40)]
+
+schema = ['Category','SubCategory','Value']
+
+df = spark.createDataFrame(data, schema)
+
+df.display()
+
+# Pivot the table according to the problem statement
+df.groupBy('SubCategory').pivot('Category').agg(sum('Value')).fillna(0).show()
