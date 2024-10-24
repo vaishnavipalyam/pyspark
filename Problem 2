@@ -1,0 +1,25 @@
+#Processing sales information for a retail store
+
+from pyspark.sql.functions import sum
+
+#Creating the source dataset
+
+columns = ["OrderID","CustomerID","Product","Quantity","Price","OrderDate"]
+data = [(1001, 101, 'Laptop', 2, 700.0, "2024-09-15"),
+        (1002, 102, 'Phone',10, 300.0, "2024-09-16"),
+        (1003, 103, "Tablet", 6, 250.0, "2024-09-17"),
+        (1004, 104, "Headphone",1, 100.0, "2024-09-18"),
+        (1005, 101, "Phone", 8, 300.0, "2024-09-19")]
+
+df = spark.createDataFrame(data, columns)
+
+df.display()
+
+# group the dataset based on customer ID to club the purchases of individual customer
+df_grouped = df.groupBy("CustomerID").agg(sum("Quantity").alias("TotalQuantity"))
+df_grouped.show()
+
+#order and filter the df to find top customers whose total quantity is more than 5
+#Ordered df
+ordered_df = df_grouped.orderBy(df_grouped['TotalQuantity'].desc()).filter(df_grouped.TotalQuantity>5)
+ordered_df.show()
