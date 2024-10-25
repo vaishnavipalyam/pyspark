@@ -1,0 +1,34 @@
+#You are given two datasets: One containing information about customers and another containing information about their orders. 
+#Your task is to join these datasets and perform some transformations to generate meaningful insights
+
+from pyspark.sql.functions import sum
+
+column_customer = ["CustomerID","Name","Country"]
+data_customer = [(101,'Alica','USA'),
+                 (102,'Bob','Canada'),
+                 (103, 'Charlie','UK'),
+                 (104,'David','Australia')]
+
+customer_df = spark.createDataFrame(data_customer, column_customer)
+customer_df.show()
+
+#create order dataset
+
+column_order = ["OrderID","CustomerID","Product","Quantity","Price","OrderDate"]
+data_order = [(2001, 101, "Laptop",1,1000,"2024-09-15"),
+              (2002, 102, "Phone",2, 600, "2024-09-16"),
+              (2003, 101, "Tablet",1, 400, "2024-09-17"),
+              (2004, 103, "Headphones",5, 50, "2024-09-18"),
+              (2005, 104, "Monitor", 1, 300, "2024-09-19")]
+
+order_df = spark.createDataFrame(data_order, column_order)
+
+order_df.show()
+
+# Solution
+df = order_df.join(customer_df, order_df["CustomerID"]==customer_df["CustomerID"],"inner")
+totaled_df = df.withColumn("TotalAmount", df["Quantity"]*df["Price"])
+select_df = totaled_df.select(order_df["CustomerID"],"Name","TotalAmount")
+total_df = select_df.groupBy("CustomerID", "Name").agg(sum("TotalAmount").alias("TotalAmount"))
+result_df = total_df.orderBy(total_df["TotalAmount"].desc()).limit(3)
+result_df.show()
